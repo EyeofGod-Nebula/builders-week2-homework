@@ -36,8 +36,8 @@ def extract_event_date(text):
     for match in re.finditer(DATE_PATTERN, text):
         start, end = match.span()
 
-        # Grab ~40 characters before and after the date match
-        context = text[max(0, start - 40):min(len(text), end + 40)].lower()
+        # Grab ~40 characters BEFORE the date match
+        context = text[max(0, start - 40):start].lower()
 
         # Skip this date if it is tied to an RSVP or deadline keyword
         if any(keyword in context for keyword in IGNORE_KEYWORDS):
@@ -47,7 +47,6 @@ def extract_event_date(text):
         return to_iso(match)
 
     return None
-
 
 if __name__ == "__main__":
     print("Event date:", extract_event_date(NOTICE))
