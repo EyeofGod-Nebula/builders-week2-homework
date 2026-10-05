@@ -31,19 +31,25 @@ def route(message):
     """Return "rules", "model", or "human" for one inbox message."""
     text = message.lower()
 
-    # 1. Human: Money, safety, injuries, refunds, policy exceptions
-    human_keywords = ["charged", "refund", "hurt", "help", "lost my id", "let me in", "money"]
+    # 1. Safety, money, harassment, and policy exceptions -> HUMAN
+    # Checked first so safety/policy queries containing rule words (e.g., "doors") route to human
+    human_keywords = [
+        "charged", "refund", "hurt", "help", "lost my id", "let me in", 
+        "money", "harass", "exception", "emergency", "police", "paid"
+    ]
     if any(keyword in text for keyword in human_keywords):
         return "human"
 
-    # 2. Rules: Static facts (doors, curfew, age limits, time)
-    rules_keywords = ["doors", "curfew", "21+", "age", "what time"]
+    # 2. Fact lookups (doors, date, time, curfew, age limits, location) -> RULES
+    rules_keywords = [
+        "doors", "curfew", "21+", "age", "what time", "date", 
+        "when is", "where", "location", "address", "time"
+    ]
     if any(keyword in text for keyword in rules_keywords):
         return "rules"
 
-    # 3. Model: Creative advice, vibe, hype captions, general questions
+    # 3. Language tasks, captions, vibe, general inquiries -> MODEL
     return "model"
-
 
 
 if __name__ == "__main__":
