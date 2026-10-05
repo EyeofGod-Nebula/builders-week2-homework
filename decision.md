@@ -31,3 +31,9 @@ One or two sentences each. Replace the text after each arrow.
 
 **One change:** What did you change (prompt, escalation rule, or model), and what happened to the token totals?
 →
+
+### Level 1 Decision Log
+
+* **Context:** `extract_event_date()` used `re.search`, returning the first date match found and causing false positives on presale/RSVP deadlines (`test_1` and `test_3`).
+* **Choice:** Replaced `re.search` with `re.finditer` to loop through all date matches, checking a ~40 character context window for deadline keywords (`rsvp`, `presale`, `closes`, `deadline`).
+* **Consequence:** Correctly identifies actual event dates, ignores isolated deadlines, and passes all 4 test cases while preserving the existing `to_iso()` logic.

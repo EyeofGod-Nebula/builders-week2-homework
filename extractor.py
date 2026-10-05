@@ -18,6 +18,9 @@ NOTICE = (
 
 DATE_PATTERN = r"(January|February|March|April|May|June|July|August|September|October|November|December) (\d{1,2}), (\d{4})"
 
+# Keywords that indicate a date is a deadline or pre-sale rather than the event itself
+IGNORE_KEYWORDS = ["rsvp", "presale", "pre-sale", "lottery", "closes", "by", "deadline", "until", "ends"]
+
 
 def to_iso(match):
     """Turn a regex match like 'October 21, 2026' into '2026-10-21'."""
@@ -25,13 +28,24 @@ def to_iso(match):
 
 
 def extract_event_date(text):
-    """Return the event date as 'YYYY-MM-DD', or None if the notice has no event date.
+    """Return the event date as 'YYYY-MM-DD', or None if the notice has no event date."""
+    if not text:
+        return None
 
-    BUG: this returns the first date in the text, even when that date is a deadline.
-    """
-    match = re.search(DATE_PATTERN, text)
-    if match:
+    # Inspect each date match in order
+    for match in re.finditer(DATE_PATTERN, text):
+        start, end = match.span()
+
+        # Grab ~40 characters before and after the date match
+        context = text[max(0, start - 40):min(len(text), end + 40)].lower()
+
+        # Skip this date if it is tied to an RSVP or deadline keyword
+        if any(keyword in context for keyword in IGNORE_KEYWORDS):
+            continue
+
+        # Return the first valid event date using your original to_iso helper
         return to_iso(match)
+
     return None
 
 
