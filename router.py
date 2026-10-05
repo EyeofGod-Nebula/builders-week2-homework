@@ -26,9 +26,16 @@ INBOX = [
     "I lost my ID, can you let me in anyway?",
 ]
 
+# Specific answers extracted directly from the event notice
+NOTICE_ANSWERS = {
+    "doors": "Secret warehouse doors open October 21, 2026 at 11:00 PM.",
+    "21+": "21+ only.",
+    "curfew": "Curfew is strictly midnight.",
+}
+
 
 def route(message):
-    """Return "rules", "model", or "human" for one inbox message."""
+    """Return 'rules' (with answer), 'model', or 'human' for one inbox message."""
     text = message.lower()
 
     # 1. Safety, money, harassment, and policy exceptions -> HUMAN
@@ -40,13 +47,13 @@ def route(message):
     if any(keyword in text for keyword in human_keywords):
         return "human"
 
-    # 2. Fact lookups (doors, date, time, curfew, age limits, location) -> RULES
-    rules_keywords = [
-        "doors", "curfew", "21+", "age", "what time", "date", 
-        "when is", "where", "location", "address", "time"
-    ]
-    if any(keyword in text for keyword in rules_keywords):
-        return "rules"
+    # 2. Fact lookups -> RULES (returns answer text alongside 'rules' tier)
+    if "door" in text or "what time" in text:
+        return "rules", NOTICE_ANSWERS["doors"]
+    if "21" in text or "age" in text:
+        return "rules", NOTICE_ANSWERS["21+"]
+    if "curfew" in text:
+        return "rules", NOTICE_ANSWERS["curfew"]
 
     # 3. Language tasks, captions, vibe, general inquiries -> MODEL
     return "model"
@@ -55,7 +62,8 @@ def route(message):
 if __name__ == "__main__":
     counts = {"rules": 0, "model": 0, "human": 0}
     for message in INBOX:
-        tier = route(message)
+        result = route(message)
+        tier = result[0] if isinstance(result, tuple) else result
         counts[tier] = counts.get(tier, 0) + 1
         print(f"{tier:>6}  {message}")
     print(f"\nLLM calls: {counts['model']} of {len(INBOX)} messages")

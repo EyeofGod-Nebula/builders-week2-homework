@@ -46,6 +46,7 @@ def ask(model, message):
         headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {os.environ['LLM_API_KEY']}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         },
     )
     try:
@@ -64,11 +65,22 @@ def ask(model, message):
 
 def handle(message, light, heavy):
     """Route one message. Return (who_answered, reply, tokens)."""
-    tier = route(message)
-    if tier == "rules":
-        return "code", "(answered by code from the notice)", 0
-    if tier == "human":
-        return "human", "(sent to a person, no model call)", 0
+    result = route(message)
+
+    # Check if router returned a tuple like ("rules", answer_text)
+    if isinstance(result, tuple):
+        tier, answer = result
+        if tier == "rules":
+            return "code", answer, 0
+        if tier == "human":
+            return "human", answer, 0
+    else:
+        tier = result
+        if tier == "rules":
+            return "code", "(answered by code from the notice)", 0
+        if tier == "human":
+            return "human", "(sent to a person, no model call)", 0
+
     reply, tokens = ask(light, message)
     if reply.upper().startswith("ESCALATE"):
         reply, heavy_tokens = ask(heavy, message)
