@@ -13,7 +13,7 @@ Step 2: rewrite route() until all router tests pass.
 See the report any time with:  python router.py
 """
 
-ATTEMPTING = False
+ATTEMPTING = True
 
 INBOX = [
     "What time do doors open?",
@@ -29,7 +29,21 @@ INBOX = [
 
 def route(message):
     """Return "rules", "model", or "human" for one inbox message."""
+    text = message.lower()
+
+    # 1. Human: Money, safety, injuries, refunds, policy exceptions
+    human_keywords = ["charged", "refund", "hurt", "help", "lost my id", "let me in", "money"]
+    if any(keyword in text for keyword in human_keywords):
+        return "human"
+
+    # 2. Rules: Static facts (doors, curfew, age limits, time)
+    rules_keywords = ["doors", "curfew", "21+", "age", "what time"]
+    if any(keyword in text for keyword in rules_keywords):
+        return "rules"
+
+    # 3. Model: Creative advice, vibe, hype captions, general questions
     return "model"
+
 
 
 if __name__ == "__main__":
